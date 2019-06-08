@@ -1,1 +1,2 @@
-# typescript +webpack 重写官网例子
+# 2048 
+# npm i && npm run dev
