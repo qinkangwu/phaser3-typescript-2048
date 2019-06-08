@@ -7,6 +7,10 @@ export class LoadScene extends Phaser.Scene {
     private tileGroup : Phaser.GameObjects.Group;
     private movingTiles : number;
     private canMove : boolean = false;
+    private score:number = 0; // 分数
+    private bestScore:number = localStorage.getItem(ConsValue.LOCAL_STORAGE_NAME) == null ? 0 : +localStorage.getItem(ConsValue.LOCAL_STORAGE_NAME); // 最高分数
+    private scoreText : Phaser.GameObjects.Text;
+    private bestScoreText : Phaser.GameObjects.Text;
 
     constructor() {
       super({
@@ -66,11 +70,17 @@ export class LoadScene extends Phaser.Scene {
         // 重新开始游戏
         this.add.sprite(this.setPosition(3, ConsValue.COL) - 10, this.setPosition(0, ConsValue.ROW) - 87, "restart");
 
-        // 分数 
-        this.add.text(this.setPosition(0, ConsValue.COL) + 30, this.setPosition(0, ConsValue.ROW) - 90, '0', { fontFamily: 'Arial', fontSize: 22, fill: '#ffffff' }).setOrigin(.5);
+         // 分数 
+        this.scoreText = this.add.text(this.setPosition(0, ConsValue.COL) + 30, this.setPosition(0, ConsValue.ROW) - 90, '0', { fontFamily: 'Arial', fontSize: 22, fill: '#ffffff' }).setOrigin(.5);
 
         // 最高分数
-        this.add.text(this.setPosition(1, ConsValue.COL) + 40, this.setPosition(0, ConsValue.ROW) - 90, '0', { fontFamily: 'Arial', fontSize: 22, fill: '#ffffff' }).setOrigin(.5);
+        this.bestScoreText = this.add.text(this.setPosition(1, ConsValue.COL) + 40, this.setPosition(0, ConsValue.ROW) - 90, this.bestScore + '', { fontFamily: 'Arial', fontSize: 22, fill: '#ffffff' }).setOrigin(.5);
+
+        let restartButton = this.add.sprite(this.setPosition(3, ConsValue.COL) - 10, this.setPosition(0, ConsValue.ROW) - 87, "restart");
+        restartButton.setInteractive();
+        restartButton.on("pointerdown", () => {
+            this.scene.start("LoadScene");
+        })
     }
 
     private layoutBody() : void{
@@ -255,7 +265,8 @@ export class LoadScene extends Phaser.Scene {
 
     private move(rowStep:number,colStep:number):void{
         this.canMove = false;
-        let somethingMoved = false;
+        let somethingMoved:boolean = false;
+        let moveScore:number = 0;
 
         this.movingTiles = 0;
         for (let i = 0; i < 4; i++) {
@@ -289,6 +300,9 @@ export class LoadScene extends Phaser.Scene {
                         this.tileArray[row + rowSteps][col + colSteps].canUpgrade &&
                         this.tileArray[row][col].canUpgrade &&
                         tileValue < 12){
+                            // 移动分数
+                            moveScore += (2 ** this.tileArray[row + rowSteps][col + colSteps].tileValue);
+
                             somethingMoved = true;
                             // 目标方块 tileValue + 1， 本来是 Math.pow(2,1) 变成了 Math.pow(2,2)，也就是方块 2 变成 4
                             this.tileArray[row + rowSteps][col + colSteps].tileValue++;
@@ -338,8 +352,14 @@ export class LoadScene extends Phaser.Scene {
 
             }
         }
-        if(!somethingMoved){
+        if (!somethingMoved) {
             this.canMove = true;
+          } else {
+            this.score += moveScore;
+            if (this.score > this.bestScore) {
+                this.bestScore = this.score;
+                localStorage.setItem(ConsValue.LOCAL_STORAGE_NAME, this.bestScore + '');
+            }
         }
     }
 
@@ -356,6 +376,8 @@ export class LoadScene extends Phaser.Scene {
                     this.transformTile(tile, row, col);
                 }
                 if (this.movingTiles === 0) {
+                    this.scoreText.setText(this.score + '');
+                    this.bestScoreText.setText(this.bestScore + '');
                     this.resetTiles();
                     this.addTile();
                 }
@@ -401,8 +423,10 @@ export class LoadScene extends Phaser.Scene {
             onComplete: () => {
                 this.movingTiles--;
                 if (this.movingTiles === 0) {
-                this.resetTiles();
-                this.addTile();
+                    this.scoreText.setText(this.score + '');
+                    this.bestScoreText.setText(this.bestScore + '');
+                    this.resetTiles();
+                    this.addTile();
                 }
             }
         })
