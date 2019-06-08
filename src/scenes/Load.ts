@@ -11,6 +11,8 @@ export class LoadScene extends Phaser.Scene {
     private bestScore:number = localStorage.getItem(ConsValue.LOCAL_STORAGE_NAME) == null ? 0 : +localStorage.getItem(ConsValue.LOCAL_STORAGE_NAME); // 最高分数
     private scoreText : Phaser.GameObjects.Text;
     private bestScoreText : Phaser.GameObjects.Text;
+    private moveSound : Phaser.Sound.BaseSound;
+    private growSound : Phaser.Sound.BaseSound;
 
     constructor() {
       super({
@@ -39,6 +41,9 @@ export class LoadScene extends Phaser.Scene {
             frameWidth: +ConsValue.TILE_SIZE,
             frameHeight: +ConsValue.TILE_SIZE
         })
+
+        this.load.audio("move", ["assets/sounds/move.ogg", "assets/sounds/move.mp3"]);
+        this.load.audio("grow", ["assets/sounds/grow.ogg", "assets/sounds/grow.mp3"]);
         
     }
   
@@ -49,10 +54,17 @@ export class LoadScene extends Phaser.Scene {
         this.addTile();
 
         this.addEvent();
+
+        this.addSound();
     }
   
     update(time: number): void {
         //console.log(this.load.progress);
+    }
+
+    private addSound ():void{
+        this.moveSound = this.sound.add("move");
+        this.growSound = this.sound.add("grow");
     }
 
     private layout() : void{
@@ -355,6 +367,7 @@ export class LoadScene extends Phaser.Scene {
         if (!somethingMoved) {
             this.canMove = true;
           } else {
+            this.moveSound.play();
             this.score += moveScore;
             if (this.score > this.bestScore) {
                 this.bestScore = this.score;
@@ -411,6 +424,7 @@ export class LoadScene extends Phaser.Scene {
     }
 
     private transformTile(tile:tileInterface , row : number, col : number) : void{
+        this.growSound.play();
         this.movingTiles++;
         tile.tileSprite.setFrame(this.tileArray[row][col].tileValue - 1);
         this.tweens.add({
