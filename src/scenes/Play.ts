@@ -15,7 +15,8 @@ export class PlayScene extends Phaser.Scene {
     }
   
     create(): void {
-      
+      //this.add.sprite(100, 100, 'score');
+      console.log(this.children)
     }
   
     update(time: number): void {

@@ -56,6 +56,8 @@ export class LoadScene extends Phaser.Scene {
         this.addEvent();
 
         this.addSound();
+
+        console.log(this.children);
     }
   
     update(time: number): void {
@@ -91,7 +93,7 @@ export class LoadScene extends Phaser.Scene {
         let restartButton = this.add.sprite(this.setPosition(3, ConsValue.COL) - 10, this.setPosition(0, ConsValue.ROW) - 87, "restart");
         restartButton.setInteractive();
         restartButton.on("pointerdown", () => {
-            this.scene.start("LoadScene");
+            this.scene.start("PlayScene");
         })
     }
 
